@@ -299,7 +299,7 @@ export interface CopyConfig {
 export interface CopyToFrom {
   absoluteSourcePath: string;
   absoluteDestPath: string;
-};
+}
 
 export interface CopyOptions {
   // https://www.npmjs.com/package/fs-extra

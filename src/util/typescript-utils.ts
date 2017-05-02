@@ -138,7 +138,7 @@ export function replaceNamedImport(filePath: string, fileContent: string, namedI
     return namedImport.elements.forEach((element: ImportSpecifier) => {
       if (element.name.text === namedImportOriginal) {
         modifiedContent = replaceNode(filePath, modifiedContent, element, namedImportReplacement);
-      };
+      }
     });
   });
 

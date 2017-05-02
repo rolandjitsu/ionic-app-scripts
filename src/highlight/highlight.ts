@@ -717,7 +717,7 @@ function typescript(hljs: any) {
       }
     ]
   };
-};
+}
 
 
 hljs.registerLanguage('scss', scss);
@@ -818,7 +818,7 @@ function scss(hljs: any) {
       }
     ]
   };
-};
+}
 
 
 hljs.registerLanguage('xml', xml);
@@ -924,4 +924,4 @@ function xml(hljs: any) {
       }
     ]
   };
-};
+}

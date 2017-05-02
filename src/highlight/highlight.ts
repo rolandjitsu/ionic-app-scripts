@@ -190,7 +190,7 @@ export function highlightError(htmlInput: string, errorCharStart: number, errorL
 
       if (isValidEscape) {
         chars[htmlIndex] = escapeChars;
-        for (var i = 0; i < escapeChars.length - 1; i++) {
+        for (let i = 0; i < escapeChars.length - 1; i++) {
           chars.splice(htmlIndex + 1, 1);
         }
       }

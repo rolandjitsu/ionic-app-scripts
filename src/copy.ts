@@ -276,7 +276,7 @@ export function copyConfigToWatchConfig(context: BuildContext): Watcher {
   };
 }
 
-interface CopySrcToDestResult {
+export interface CopySrcToDestResult {
   success: boolean;
   src: string;
   dest: string;

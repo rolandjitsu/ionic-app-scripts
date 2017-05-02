@@ -1,7 +1,8 @@
 import { access } from 'fs';
 import { BuildContext, ChangedFile, TaskInfo } from './util/interfaces';
 
-import { lintFile, LintResult, processLintResults } from './lint/lint-utils';
+import { LintResult } from 'tslint';
+import { lintFile, processLintResults } from './lint/lint-utils';
 import { createProgram, getFileNames } from './lint/lint-factory';
 import { getUserConfigFile } from './util/config';
 import * as Constants from './util/constants';
@@ -73,7 +74,7 @@ export function lintFiles(context: BuildContext, program: ts.Program, filePaths:
   return Promise.resolve().then(() => {
     const promises: Promise<any>[] = [];
     for (const filePath of filePaths) {
-      promises.push(lintFile(context, program, filePath));
+      promises.push(lintFile(program, filePath));
     }
     return Promise.all(promises);
   }).then((lintResults: LintResult[]) => {
@@ -116,6 +117,4 @@ const taskInfo: TaskInfo = {
 export interface LintWorkerConfig {
   configFile: string;
   filePaths: string[];
-};
-
-
+}

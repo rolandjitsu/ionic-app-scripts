@@ -1,24 +1,23 @@
-import { createProgram as lintCreateProgram, findConfiguration, getFileNames as lintGetFileNames } from 'tslint';
-import * as Linter from 'tslint';
+import { Configuration, Linter, LintResult } from 'tslint';
 import { Program } from 'typescript';
 
-export function getLinter(filePath: string, fileContent: string, program: Program) {
-  const configuration = findConfiguration(null, filePath);
-
-    const linter = new Linter(filePath, fileContent, {
-      configuration: configuration,
-      formatter: null,
-      formattersDirectory: null,
-      rulesDirectory: null,
-    }, program);
-
-    return linter;
-}
-
-export function createProgram(configFilePath: string, sourceDir: string) {
-  return lintCreateProgram(configFilePath, sourceDir);
+export function createProgram(configFile: string, projectDirectory: string) {
+  return Linter.createProgram(configFile, projectDirectory);
 }
 
 export function getFileNames(program: Program) {
-  return lintGetFileNames(program);
+  return Linter.getFileNames(program);
+}
+
+export function getConfiguration(filePath: string) {
+  return Configuration.findConfiguration(null, filePath);
+}
+
+export function getLintResult(linter: Linter): LintResult {
+  return linter.getResult();
+}
+export function getLinter(program: Program) {
+  return new Linter({
+    fix: false
+  }, program);
 }

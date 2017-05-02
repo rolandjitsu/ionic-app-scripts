@@ -1,15 +1,18 @@
 import { basename, dirname, join, sep } from 'path';
-import { BuildContext, BuildState, ChangedFile, TaskInfo } from './util/interfaces';
-import { BuildError } from './util/errors';
-import { bundle } from './bundle';
+
+import * as autoprefixer from 'autoprefixer';
 import { ensureDirSync, readdirSync, writeFile } from 'fs-extra';
-import { fillConfigDefaults, getUserConfigFile, replacePathVars } from './util/config';
+import { SassError, render as nodeSassRender, Result } from 'node-sass';
+import * as postcss from 'postcss';
+
+import { bundle } from './bundle';
 import { Logger } from './logger/logger';
 import { runSassDiagnostics } from './logger/logger-sass';
 import { printDiagnostics, clearDiagnostics, DiagnosticsType } from './logger/logger-diagnostics';
-import { SassError, render as nodeSassRender, Result } from 'node-sass';
-import * as postcss from 'postcss';
-import * as autoprefixer from 'autoprefixer';
+import { fillConfigDefaults, getUserConfigFile, replacePathVars } from './util/config';
+import { BuildError } from './util/errors';
+import { toUnixPath } from './util/helpers';
+import { BuildContext, BuildState, ChangedFile, TaskInfo } from './util/interfaces';
 
 
 export function sass(context: BuildContext, configFile?: string) {
@@ -137,7 +140,7 @@ function generateSassData(context: BuildContext, sassConfig: SassConfig) {
 
 function getComponentSassFiles(moduleDirectories: string[], context: BuildContext, sassConfig: SassConfig) {
   const collectedSassFiles: string[] = [];
-  const componentDirectories = getComponentDirectories(moduleDirectories, sassConfig);
+  const componentDirectories = getComponentDirectories(context, moduleDirectories, sassConfig);
 
   // sort all components with the library components being first
   // and user components coming last, so it's easier for user css
@@ -210,20 +213,25 @@ function isValidSassFile(filename: string, sassConfig: SassConfig) {
 }
 
 
-function getComponentDirectories(moduleDirectories: string[], sassConfig: SassConfig) {
+function getComponentDirectories(context: BuildContext, moduleDirectories: string[], sassConfig: SassConfig) {
   // filter out module directories we know wouldn't have sibling component sass file
   // just a way to reduce the amount of lookups to be done later
-  return moduleDirectories.filter(moduleDirectory => {
+  const sassDirectories = moduleDirectories.filter(moduleDirectory => {
     // normalize this directory is using / between directories
-    moduleDirectory = moduleDirectory.replace(/\\/g, '/');
+    moduleDirectory = toUnixPath(moduleDirectory);
 
     for (var i = 0; i < sassConfig.excludeModules.length; i++) {
       if (moduleDirectory.indexOf('/node_modules/' + sassConfig.excludeModules[i] + '/') > -1) {
+        return false;
+      } else if (moduleDirectory.indexOf(context.ionicAngularDir) >= 0) {
         return false;
       }
     }
     return true;
   });
+
+  //console.log('sassDirectories: ', context.includedIonicComponentPaths);
+  return sassDirectories.concat(Array.from(context.includedIonicComponentPaths));
 }
 
 

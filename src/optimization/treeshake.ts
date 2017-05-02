@@ -1,7 +1,7 @@
 import { dirname, join, relative } from 'path';
 import { Logger } from '../logger/logger';
 import * as Constants from '../util/constants';
-import { changeExtension, convertFilePathToNgFactoryPath, escapeStringForRegex, getStringPropertyValue, toUnixPath } from '../util/helpers';
+import { changeExtension, convertFilePathToNgFactoryPath, escapeStringForRegex, getStringPropertyValue, printDependencyMap, toUnixPath } from '../util/helpers';
 import { TreeShakeCalcResults } from '../util/interfaces';
 
 export function calculateUnusedComponents(dependencyMap: Map<string, Set<string>>): TreeShakeCalcResults {
@@ -12,6 +12,7 @@ export function calculateUnusedComponentsImpl(dependencyMap: Map<string, Set<str
   const filteredMap = filterMap(dependencyMap);
   processImportTree(filteredMap, importee);
   calculateUnusedIonicProviders(filteredMap);
+  printDependencyMap(dependencyMap);
   return generateResults(filteredMap);
 }
 
@@ -27,6 +28,7 @@ function generateResults(dependencyMap: Map<string, Set<string>>) {
       toPurgeMap.set(modulePath, importeeSet);
     }
   });
+
   return {
     updatedDependencyMap: updatedMap,
     purgedModules: toPurgeMap
@@ -46,7 +48,7 @@ function filterMap(dependencyMap: Map<string, Set<string>>) {
   const filteredMap = new Map<string, Set<string>>();
   dependencyMap.forEach((importeeSet: Set<string>, modulePath: string) => {
     if (isIonicComponentOrAppSource(modulePath) || modulePath === getIonicModuleFilePath()) {
-      importeeSet.delete(getStringPropertyValue(Constants.ENV_VAR_IONIC_ANGULAR_ENTRY_POINT));
+      importeeSet.delete(getStringPropertyValue(Constants.ENV_VAR_IONIC_ANGULAR_OPTIMIZATION_ENTRY_POINT));
       filteredMap.set(modulePath, importeeSet);
     }
   });
@@ -55,6 +57,7 @@ function filterMap(dependencyMap: Map<string, Set<string>>) {
 
 function processImportTree(dependencyMap: Map<string, Set<string>>, importee: string) {
   const importees: string[] = [];
+
   dependencyMap.forEach((importeeSet: Set<string>, modulePath: string) => {
     if (importeeSet && importeeSet.has(importee)) {
       importeeSet.delete(importee);
@@ -128,6 +131,9 @@ export function getAppModuleNgFactoryPath() {
 
 function processIonicProviders(dependencyMap: Map<string, Set<string>>, providerPath: string) {
   const importeeSet = dependencyMap.get(providerPath);
+  console.log(`\n\n${providerPath} has following importee set`);
+  importeeSet.forEach(importee => console.log(importee));
+  console.log('\n\n');
   const appModuleNgFactoryPath = getAppModuleNgFactoryPath();
 
   // we can only purge an ionic provider if it is imported from one module, which is the AppModuleNgFactory
@@ -152,7 +158,7 @@ function processImportTreeForProviders(dependencyMap: Map<string, Set<string>>, 
 
 export function isIonicComponentOrAppSource(modulePath: string) {
   // for now, just use a simple filter of if a file is in ionic-angular/components
-  const ionicAngularComponentDir = join(getStringPropertyValue(Constants.ENV_VAR_IONIC_ANGULAR_DIR), 'components');
+  const ionicAngularComponentDir = join(getStringPropertyValue(Constants.ENV_VAR_IONIC_ANGULAR_DIR), 'es5', 'components');
   const srcDir = getStringPropertyValue(Constants.ENV_VAR_SRC_DIR);
   return modulePath.indexOf(ionicAngularComponentDir) >= 0 || modulePath.indexOf(srcDir) >= 0;
 }
@@ -295,6 +301,6 @@ export function generateIonicModulePurgeProviderRegex(className: string) {
 }
 
 export function getIonicModuleFilePath() {
-  const entryPoint = getStringPropertyValue(Constants.ENV_VAR_IONIC_ANGULAR_ENTRY_POINT);
+  const entryPoint = getStringPropertyValue(Constants.ENV_VAR_IONIC_ANGULAR_OPTIMIZATION_ENTRY_POINT);
   return join(dirname(entryPoint), 'module.js');
 }

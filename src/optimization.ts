@@ -59,7 +59,7 @@ export function purgeGeneratedFiles(context: BuildContext, fileNameSuffix: strin
 
 export function doOptimizations(context: BuildContext, dependencyMap: Map<string, Set<string>>) {
   // remove decorators
-  const modifiedMap = new Map(dependencyMap);
+  let modifiedMap = new Map(dependencyMap);
   if (getBooleanPropertyValue(Constants.ENV_PURGE_DECORATORS)) {
     removeDecorators(context);
   }
@@ -73,6 +73,9 @@ export function doOptimizations(context: BuildContext, dependencyMap: Map<string
     if (context.fileCache.get(ionicModulePath)) {
       const results = calculateUnusedComponents(modifiedMap);
       purgeUnusedImports(context, results.purgedModules);
+      results.purgedModules.forEach((set: Set<string>, path: string) => {
+      });
+      updateIonicComponentsUsed(context, results.updatedDependencyMap);
     }
   }
 
@@ -83,6 +86,11 @@ export function doOptimizations(context: BuildContext, dependencyMap: Map<string
   }
 
   return modifiedMap;
+}
+
+export function updateIonicComponentsUsed(context: BuildContext, dependencyMap: Map<string, Set<string>>) {
+  console.log('updateIonicComponentsUsed');
+
 }
 
 function optimizationEnabled() {
@@ -112,7 +120,7 @@ function removeDecorators(context: BuildContext) {
 
 function purgeUnusedImports(context: BuildContext, purgeDependencyMap: Map<string, Set<string>>) {
   // for now, restrict this to components in the ionic-angular/index.js file
-  const indexFilePath = getStringPropertyValue(Constants.ENV_VAR_IONIC_ANGULAR_ENTRY_POINT);
+  /*const indexFilePath = getStringPropertyValue(Constants.ENV_VAR_IONIC_ANGULAR_ENTRY_POINT);
   const moduleFilePath = getIonicModuleFilePath();
   const file = context.fileCache.get(indexFilePath);
   if (!file) {
@@ -137,7 +145,9 @@ function purgeUnusedImports(context: BuildContext, purgeDependencyMap: Map<strin
   attemptToPurgeUnusedProvider(context, purgeDependencyMap, getStringPropertyValue(Constants.ENV_PICKER_CONTROLLER_PATH), getStringPropertyValue(Constants.ENV_PICKER_VIEW_CONTROLLER_PATH), getStringPropertyValue(Constants.ENV_PICKER_COMPONENT_FACTORY_PATH), getStringPropertyValue(Constants.ENV_PICKER_CONTROLLER_CLASSNAME));
   attemptToPurgeUnusedProvider(context, purgeDependencyMap, getStringPropertyValue(Constants.ENV_POPOVER_CONTROLLER_PATH), getStringPropertyValue(Constants.ENV_POPOVER_VIEW_CONTROLLER_PATH), getStringPropertyValue(Constants.ENV_POPOVER_COMPONENT_FACTORY_PATH), getStringPropertyValue(Constants.ENV_POPOVER_CONTROLLER_CLASSNAME));
   attemptToPurgeUnusedProvider(context, purgeDependencyMap, getStringPropertyValue(Constants.ENV_TOAST_CONTROLLER_PATH), getStringPropertyValue(Constants.ENV_TOAST_VIEW_CONTROLLER_PATH), getStringPropertyValue(Constants.ENV_TOAST_COMPONENT_FACTORY_PATH), getStringPropertyValue(Constants.ENV_TOAST_CONTROLLER_CLASSNAME));
+  */
 }
+
 
 function attemptToPurgeUnusedProvider(context: BuildContext, dependencyMap: Map<string, Set<string>>, providerPath: string, providerComponentPath: string, providerComponentFactoryPath: string, providerClassName: string) {
   if (dependencyMap.has(providerPath)) {

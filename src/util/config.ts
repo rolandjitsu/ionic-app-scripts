@@ -145,9 +145,13 @@ export function generateContext(context?: BuildContext): BuildContext {
   setProcessEnvVar(Constants.ENV_VAR_TARGET, context.target);
   Logger.debug(`target set to ${context.target}`);
 
-  const ionicAngularEntryPoint = resolve(getConfigValue(context, '--ionicAngularEntryPoint', null, Constants.ENV_VAR_IONIC_ANGULAR_ENTRY_POINT, Constants.ENV_VAR_IONIC_ANGULAR_ENTRY_POINT.toLowerCase(), join(context.ionicAngularDir, 'index.js')));
-  setProcessEnvVar(Constants.ENV_VAR_IONIC_ANGULAR_ENTRY_POINT, ionicAngularEntryPoint);
-  Logger.debug(`ionicAngularEntryPoint set to ${ionicAngularEntryPoint}`);
+  const ionicAngularOptimizationEntryPoint = resolve(getConfigValue(context, '--ionicAngularOptimizationEntryPoint', null, Constants.ENV_VAR_IONIC_ANGULAR_OPTIMIZATION_ENTRY_POINT, Constants.ENV_VAR_IONIC_ANGULAR_OPTIMIZATION_ENTRY_POINT.toLowerCase(), join(context.ionicAngularDir, 'es5', 'index.js')));
+  setProcessEnvVar(Constants.ENV_VAR_IONIC_ANGULAR_OPTIMIZATION_ENTRY_POINT, ionicAngularOptimizationEntryPoint);
+  Logger.debug(`ionicAngularOptimizationEntryPoint set to ${ionicAngularOptimizationEntryPoint}`);
+
+  const ionicAngularFesmEntryPoint = resolve(getConfigValue(context, '--ionicAngularFesmEntryPoint', null, Constants.ENV_VAR_IONIC_ANGULAR_FESM_ENTRY_POINT, Constants.ENV_VAR_IONIC_ANGULAR_FESM_ENTRY_POINT.toLowerCase(), join(context.ionicAngularDir, 'es5-fesm', 'ionic-angular.js')));
+  setProcessEnvVar(Constants.ENV_VAR_IONIC_ANGULAR_FESM_ENTRY_POINT, ionicAngularFesmEntryPoint);
+  Logger.debug(`ionicAngularFesmEntryPoint set to ${ionicAngularFesmEntryPoint}`);
 
   const appScriptsDir = join(__dirname, '..', '..');
   setProcessEnvVar(Constants.ENV_VAR_APP_SCRIPTS_DIR, appScriptsDir);

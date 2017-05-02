@@ -1,4 +1,7 @@
 import { CancellationToken, CompilerHost, CompilerOptions, createCompilerHost, ScriptTarget, SourceFile } from 'typescript';
+
+import * as Constants from '../util/constants';
+import { getIonicAngularPackageJsonFilePath } from '../util/helpers';
 import { VirtualFileSystem } from '../util/interfaces';
 import { getTypescriptSourceFile } from '../util/typescript-utils';
 import { Logger } from '../logger/logger';
@@ -11,7 +14,7 @@ export class NgcCompilerHost implements CompilerHost {
   private sourceFileMap: Map<string, SourceFile>;
   private diskCompilerHost: CompilerHost;
 
-  constructor(private options: CompilerOptions, private fileSystem: VirtualFileSystem, private setParentNodes = true) {
+  constructor(private options: CompilerOptions, private fileSystem: VirtualFileSystem, private setParentNodes = true, private useFesm: boolean = false) {
     this.diskCompilerHost = createCompilerHost(this.options, this.setParentNodes);
     this.sourceFileMap = new Map<string, SourceFile>();
   }
@@ -25,11 +28,28 @@ export class NgcCompilerHost implements CompilerHost {
   }
 
   readFile(filePath: string): string {
-    const fileContent = this.fileSystem.getFileContent(filePath);
-    if (fileContent) {
-      return fileContent;
+    let fileContent = this.fileSystem.getFileContent(filePath);
+    if (!fileContent) {
+      fileContent = this.diskCompilerHost.readFile(filePath);
+      if (filePath.endsWith('package.json')) {
+        //this.fileSystem.addVirtualFile(filePath, fileContent);
+      }
     }
-    return this.diskCompilerHost.readFile(filePath);
+
+    // if we're using the fesm and the path matches,
+    // read the file and convert the typings and module fields
+    // to point to the fesm
+    if (this.useFesm && filePath === getIonicAngularPackageJsonFilePath()) {
+      console.log('fileContent: ', fileContent);
+      const packageJson = JSON.parse(fileContent);
+      packageJson.module = packageJson['es5-fesm'];
+      packageJson.types = packageJson['es5-fesm-types'];
+      fileContent = JSON.stringify(packageJson);
+    }
+
+    //console.log('\n\n\n\n filePath: ', filePath);
+    //console.log('fileContent: ', fileContent);
+    return fileContent;
   }
 
   directoryExists(directoryPath: string): boolean {

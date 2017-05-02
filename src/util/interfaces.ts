@@ -17,6 +17,7 @@ export interface BuildContext {
   wwwDir?: string;
   wwwIndex?: string;
   buildDir?: string;
+  includedIonicComponentPaths?: Set<string>;
   outputJsFileName?: string;
   outputCssFileName?: string;
   nodeModulesDir?: string;

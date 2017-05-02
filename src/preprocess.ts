@@ -4,6 +4,7 @@ import { basename, dirname, join, relative } from 'path';
 import { Logger } from './logger/logger';
 import * as Constants from './util/constants';
 import { BuildError } from './util/errors';
+import { globAll, GlobResult } from './util/glob-util';
 import { getBooleanPropertyValue } from './util/helpers';
 import { BuildContext, ChangedFile } from './util/interfaces';
 import { optimization } from './optimization';
@@ -26,8 +27,9 @@ export function preprocess(context: BuildContext) {
 function preprocessWorker(context: BuildContext) {
   const bundlePromise = bundleCoreComponents(context);
   const deepLinksPromise = getBooleanPropertyValue(Constants.ENV_PARSE_DEEPLINKS) ? deepLinking(context) : Promise.resolve();
+  const defaultComponentLookupPromise = lookUpDefaultIonicComponentPaths(context);
 
-  return Promise.all([bundlePromise, deepLinksPromise])
+  return Promise.all([bundlePromise, deepLinksPromise, defaultComponentLookupPromise])
     .then(() => {
       if (context.optimizeJs) {
         return optimization(context, null);
@@ -66,4 +68,15 @@ export function preprocessUpdate(changedFiles: ChangedFile[], context: BuildCont
   }
 
   return Promise.all(promises);
+}
+
+export function lookUpDefaultIonicComponentPaths(context: BuildContext) {
+  const componentDir = join(context.ionicAngularDir, 'components');
+  return globAll([join(componentDir, '**', '*.scss')]).then((results: GlobResult[]) => {
+    const componentPathSet = new Set<string>();
+    results.forEach(result => {
+      componentPathSet.add(dirname(result.absolutePath));
+    });
+    context.includedIonicComponentPaths = componentPathSet;
+  });
 }

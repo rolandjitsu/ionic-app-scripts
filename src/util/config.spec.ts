@@ -88,7 +88,8 @@ describe('config', () => {
       expect(fakeConfig[Constants.ENV_VAR_IONIC_ANGULAR_TEMPLATE_DIR]).toEqual(join(context.ionicAngularDir, 'templates'));
       expect(context.platform).toEqual(null);
       expect(context.target).toEqual(null);
-      expect(fakeConfig[Constants.ENV_VAR_IONIC_ANGULAR_ENTRY_POINT]).toEqual(join(context.ionicAngularDir, 'index.js'));
+      expect(fakeConfig[Constants.ENV_VAR_IONIC_ANGULAR_OPTIMIZATION_ENTRY_POINT]).toEqual(join(context.ionicAngularDir, 'es5', 'index.js'));
+      expect(fakeConfig[Constants.ENV_VAR_IONIC_ANGULAR_FESM_ENTRY_POINT]).toEqual(join(context.ionicAngularDir, 'es5-fesm', 'ionic-angular.js'));
       expect(fakeConfig[Constants.ENV_VAR_APP_SCRIPTS_DIR]).toEqual(join(__dirname, '..', '..'));
       expect(fakeConfig[Constants.ENV_VAR_GENERATE_SOURCE_MAP]).toEqual('true');
       expect(fakeConfig[Constants.ENV_VAR_SOURCE_MAP_TYPE]).toEqual(Constants.SOURCE_MAP_TYPE_EXPENSIVE);

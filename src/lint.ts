@@ -6,7 +6,6 @@ import { getFileNames } from './lint/lint-factory';
 import { Logger } from './logger/logger';
 import { getUserConfigFile } from './util/config';
 import { ENV_BAIL_ON_LINT_ERROR, ENV_TYPE_CHECK_ON_LINT } from './util/constants';
-import { BuildError } from './util/errors';
 import { getBooleanPropertyValue } from './util/helpers';
 import { BuildContext, ChangedFile, TaskInfo } from './util/interfaces';
 import { runWorker } from './worker-client';
@@ -35,7 +34,7 @@ export function lint(context: BuildContext, configFile?: string) {
     })
     .catch((err: Error) => {
       if (getBooleanPropertyValue(ENV_BAIL_ON_LINT_ERROR)) {
-        throw logger.fail(new BuildError(err));
+        throw logger.fail(err);
       }
       logger.finish();
     });

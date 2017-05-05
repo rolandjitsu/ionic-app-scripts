@@ -2,6 +2,12 @@ import { Configuration, Linter, LintResult } from 'tslint';
 import { Program } from 'typescript';
 import { BuildContext } from '../util/interfaces';
 import { getTsConfigPath } from '../transpile';
+import { isObject } from 'util';
+
+
+export interface LinterOptions {
+  typeCheck?: boolean;
+}
 
 
 /**
@@ -10,12 +16,13 @@ import { getTsConfigPath } from '../transpile';
  * @param {string} configFile
  * @param {string} filePath
  * @param {string} fileContents
+ * @param {LinterOptions} linterOptions
  * @return {LintResult}
  */
-export function lint(context: BuildContext, configFile: string, filePath: string, fileContents: string): LintResult {
+export function lint(context: BuildContext, configFile: string, filePath: string, fileContents: string, linterOptions?: LinterOptions): LintResult {
   const linter = getLinter(context);
   const configuration = Configuration.findConfiguration(configFile, filePath);
-  linter.lint(filePath, fileContents, configuration.results);
+  linter.lint(filePath, fileContents, Object.assign(configuration.results, isObject(linterOptions) ? {linterOptions} : {}));
   return linter.getResult();
 }
 

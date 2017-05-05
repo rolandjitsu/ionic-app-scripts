@@ -58,7 +58,7 @@ export function lintUpdate(changedFiles: ChangedFile[], context: BuildContext) {
 
 export function lintUpdateWorker(context: BuildContext, workerConfig: LintWorkerConfig) {
   return getLintConfig(context, workerConfig.configFile)
-    .then(configFile => lintFiles(context, configFile, workerConfig.filePaths))
+    .then(configFile => lintFiles(context, configFile, workerConfig.filePaths, {typeCheck: getBooleanPropertyValue(ENV_TYPE_CHECK_ON_LINT)}))
     // Don't throw if linting failed
     .catch(() => {});
 }
@@ -66,9 +66,7 @@ export function lintUpdateWorker(context: BuildContext, workerConfig: LintWorker
 
 function lintApp(context: BuildContext, configFile: string | null) {
   const files = getFileNames(context);
-  // TODO: Flag type checking
-  if (getBooleanPropertyValue(ENV_TYPE_CHECK_ON_LINT)) {}
-  return lintFiles(context, configFile, files);
+  return lintFiles(context, configFile, files, {typeCheck: getBooleanPropertyValue(ENV_TYPE_CHECK_ON_LINT)});
 }
 
 

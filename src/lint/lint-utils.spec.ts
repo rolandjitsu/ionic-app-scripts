@@ -15,6 +15,9 @@ describe('lint utils', () => {
         export const foo = 'bar';
       `;
       const context: any = {};
+      const linterOptions = {
+        typeCheck: true
+      };
       const mockLintResult: any = {
         errorCount: 0,
         warningCount: 0,
@@ -32,11 +35,11 @@ describe('lint utils', () => {
       spyOn(fs, 'readSync').and.returnValue(null);
       spyOn(fs, 'closeSync').and.returnValue(null);
 
-      return utils.lintFile(context, null, filePath)
+      return utils.lintFile(context, null, filePath, linterOptions)
         .then((result: LintResult) => {
           expect(result).toEqual(mockLintResult);
           expect(linter.lint)
-            .toHaveBeenCalledWith(context, null, filePath, fileContent);
+            .toHaveBeenCalledWith(context, null, filePath, fileContent, linterOptions);
         });
     });
   });

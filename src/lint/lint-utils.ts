@@ -39,6 +39,7 @@ export function lintFile(context: BuildContext, configFile: string | null, fileP
  * @param {BuildContext} context
  * @param {Array<Diagnostic>} tsDiagnostics
  */
+// TODO: Export this and return failed files, then write a test
 export function processTypeCheckDiagnostics(context: BuildContext, tsDiagnostics: Diagnostic[]) {
   if (tsDiagnostics.length > 0) {
     const diagnostics = runTypeScriptDiagnostics(context, tsDiagnostics);
@@ -56,6 +57,7 @@ export function processTypeCheckDiagnostics(context: BuildContext, tsDiagnostics
  * @param {BuildContext} context
  * @param {Array<LintResult>} results
  */
+// TODO: Export this and return failed files, then write a test
 export function processLintResults(context: BuildContext, results: LintResult[]) {
   const filesThatDidNotPass: string[] = [];
 
@@ -76,10 +78,12 @@ export function processLintResults(context: BuildContext, results: LintResult[])
 }
 
 
+// TODO: Test this
 function generateErrorMessageForFiles(failingFiles: string[], message?: string) {
   return `${message || 'The following files did not pass tslint:'} \n${failingFiles.join('\n')}`;
 }
 
+// TODO: Test this
 function getFileNames(context: BuildContext, failures: RuleFailure[]): string[] {
   return failures.map(failure => failure.getFileName()
     .replace(context.rootDir, '')

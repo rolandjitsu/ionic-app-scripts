@@ -1,8 +1,7 @@
 import * as fs from 'fs';
-import { Program } from 'typescript';
-import { LintResult } from 'tslint';
+import { LintResult, RuleFailure } from 'tslint';
 import { BuildError } from '../util/errors';
-import { getLinter, getConfiguration, getLintResult } from './lint-factory';
+import { lint } from './lint-factory';
 import { readFileAsync } from '../util/helpers';
 import { BuildContext } from '../util/interfaces';
 import { Logger } from '../logger/logger';
@@ -10,33 +9,50 @@ import { printDiagnostics, DiagnosticsType } from '../logger/logger-diagnostics'
 import { runTsLintDiagnostics } from '../logger/logger-tslint';
 
 
-export function lintFile(program: Program, filePath: string): Promise<LintResult> {
-  return Promise.resolve()
-    .then(() => {
-      if (isMpegFile(filePath)) {
-        throw new Error(`${filePath} is not a valid TypeScript file`);
-      }
-      return readFileAsync(filePath);
-    })
-    .then((fileContents: string) => {
-      const linter = getLinter(program);
-      const configuration = getConfiguration(filePath);
-      linter.lint(filePath, fileContents, configuration.results);
-      return getLintResult(linter);
-    });
+/**
+ * Lint files
+ * @param {BuildContext} context
+ * @param {string|null} configFile - TSLint config file path
+ * @param {Array<string>} filePaths
+ */
+export function lintFiles(context: BuildContext, configFile: string | null, filePaths: string[]): Promise<void> {
+  return Promise.all(filePaths.map(filePath => lintFile(context, configFile, filePath)))
+    .then((lintResults: LintResult[]) => processLintResults(context, lintResults));
+}
+export function lintFile(context: BuildContext, configFile: string | null, filePath: string): Promise<LintResult> {
+  if (isMpegFile(filePath)) {
+    return Promise.reject(`${filePath} is not a valid TypeScript file`);
+  }
+  return readFileAsync(filePath)
+    .then((fileContents: string) => lint(context, configFile, filePath, fileContents));
 }
 
 
-export function processLintResults(context: BuildContext, lintResults: LintResult[]) {
+/**
+ * Process lint results
+ * NOTE: This will throw a BuildError if there were any warnings or errors in any of the lint results.
+ * @param {BuildContext} context
+ * @param {Array<LintResult>} results
+ */
+export function processLintResults(context: BuildContext, results: LintResult[]) {
   const filesThatDidNotPass: string[] = [];
-  for (const lintResult of lintResults) {
-    if (lintResult.errorCount > 0) {
-      const diagnostics = runTsLintDiagnostics(context, lintResult.failures);
+
+  for (const result of results) {
+    // Only process result if there are no errors or warnings
+    if (result.errorCount !== 0 || result.warningCount !== 0) {
+      const diagnostics = runTsLintDiagnostics(context, result.failures);
       printDiagnostics(context, DiagnosticsType.TsLint, diagnostics, true, false);
-      filesThatDidNotPass.push(...lintResult.failures.map(failure => failure.getFileName()));
+
+      // Only add new file entries if not already there
+      for (const fileName of getFileNames(context, result.failures)) {
+        if (filesThatDidNotPass.indexOf(fileName) === -1) {
+          filesThatDidNotPass.push(fileName);
+        }
+      }
     }
   }
-  if (filesThatDidNotPass.length) {
+
+  if (filesThatDidNotPass.length > 0) {
     const errorMsg = generateFormattedErrorMsg(filesThatDidNotPass);
     throw new BuildError(errorMsg);
   }
@@ -44,11 +60,14 @@ export function processLintResults(context: BuildContext, lintResults: LintResul
 
 
 function generateFormattedErrorMsg(failingFiles: string[]) {
-  let listOfFilesString = '';
-  failingFiles.forEach(file => listOfFilesString = listOfFilesString + file + '\n');
-  return `The following files did not pass tslint: \n${listOfFilesString}`;
+  return `The following files did not pass tslint: \n${failingFiles.join('\n')}`;
 }
 
+function getFileNames(context: BuildContext, failures: RuleFailure[]): string[] {
+  return failures.map(failure => failure.getFileName()
+    .replace(context.rootDir, '')
+    .replace(/^\//g, ''));
+}
 
 function isMpegFile(file: string) {
   const buffer = new Buffer(256);

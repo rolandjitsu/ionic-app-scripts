@@ -1,18 +1,30 @@
 import { access } from 'fs';
-import { BuildContext, ChangedFile, TaskInfo } from './util/interfaces';
+import { join } from 'path';
 
-import { LintResult } from 'tslint';
-import { lintFile, processLintResults } from './lint/lint-utils';
-import { createProgram, getFileNames } from './lint/lint-factory';
+import { lintFiles } from './lint/lint-utils';
+import { getFileNames } from './lint/lint-factory';
+import { Logger } from './logger/logger';
 import { getUserConfigFile } from './util/config';
-import * as Constants from './util/constants';
+import { ENV_BAIL_ON_LINT_ERROR, ENV_TYPE_CHECK_ON_LINT } from './util/constants';
 import { BuildError } from './util/errors';
 import { getBooleanPropertyValue } from './util/helpers';
-import { join } from 'path';
-import { Logger } from './logger/logger';
-
+import { BuildContext, ChangedFile, TaskInfo } from './util/interfaces';
 import { runWorker } from './worker-client';
-import * as ts from 'typescript';
+
+
+export interface LintWorkerConfig {
+  configFile: string;
+  filePaths: string[];
+}
+
+
+const taskInfo: TaskInfo = {
+  fullArg: '--tslint',
+  shortArg: '-i',
+  envVar: 'ionic_tslint',
+  packageConfig: 'IONIC_TSLINT',
+  defaultConfigFile: '../tslint'
+};
 
 
 export function lint(context: BuildContext, configFile?: string) {
@@ -22,64 +34,41 @@ export function lint(context: BuildContext, configFile?: string) {
       logger.finish();
     })
     .catch((err: Error) => {
-      if (getBooleanPropertyValue(Constants.ENV_BAIL_ON_LINT_ERROR)) {
+      if (getBooleanPropertyValue(ENV_BAIL_ON_LINT_ERROR)) {
         throw logger.fail(new BuildError(err));
       }
       logger.finish();
     });
 }
 
-
 export function lintWorker(context: BuildContext, configFile: string) {
-  return getLintConfig(context, configFile).then(configFile => {
-    // there's a valid tslint config, let's continue
-    return lintApp(context, configFile);
-  });
+  return getLintConfig(context, configFile)
+    .then(configFile => lintApp(context, configFile));
 }
 
 
 export function lintUpdate(changedFiles: ChangedFile[], context: BuildContext) {
   const changedTypescriptFiles = changedFiles.filter(changedFile => changedFile.ext === '.ts');
-  return new Promise(resolve => {
-    // throw this in a promise for async fun, but don't let it hang anything up
-    const workerConfig: LintWorkerConfig = {
-      configFile: getUserConfigFile(context, taskInfo, null),
-      filePaths: changedTypescriptFiles.map(changedTypescriptFile => changedTypescriptFile.filePath)
-    };
-
-    runWorker('lint', 'lintUpdateWorker', context, workerConfig);
-    resolve();
-  });
+  const workerConfig: LintWorkerConfig = {
+    filePaths: changedTypescriptFiles.map(changedTypescriptFile => changedTypescriptFile.filePath),
+    configFile: getUserConfigFile(context, taskInfo, null)
+  };
+  return runWorker('lint', 'lintUpdateWorker', context, workerConfig);
 }
-
 
 export function lintUpdateWorker(context: BuildContext, workerConfig: LintWorkerConfig) {
-  return getLintConfig(context, workerConfig.configFile).then(configFile => {
-    // there's a valid tslint config, let's continue (but be quiet about it!)
-    const program = createProgram(configFile, context.srcDir);
-    return lintFiles(context, program, workerConfig.filePaths);
-  }).catch(() => {
-  });
+  return getLintConfig(context, workerConfig.configFile)
+    .then(configFile => lintFiles(context, configFile, workerConfig.filePaths))
+    // Don't throw if linting failed
+    .catch(() => {});
 }
 
 
-function lintApp(context: BuildContext, configFile: string) {
-  const program = createProgram(configFile, context.srcDir);
-  const files = getFileNames(program);
-
-  return lintFiles(context, program, files);
-}
-
-export function lintFiles(context: BuildContext, program: ts.Program, filePaths: string[]) {
-  return Promise.resolve().then(() => {
-    const promises: Promise<any>[] = [];
-    for (const filePath of filePaths) {
-      promises.push(lintFile(program, filePath));
-    }
-    return Promise.all(promises);
-  }).then((lintResults: LintResult[]) => {
-    return processLintResults(context, lintResults);
-  });
+function lintApp(context: BuildContext, configFile: string | null) {
+  const files = getFileNames(context);
+  // TODO: Flag type checking
+  if (getBooleanPropertyValue(ENV_TYPE_CHECK_ON_LINT)) {}
+  return lintFiles(context, configFile, files);
 }
 
 
@@ -103,18 +92,4 @@ function getLintConfig(context: BuildContext, configFile: string): Promise<strin
       resolve(configFile);
     });
   });
-}
-
-
-const taskInfo: TaskInfo = {
-  fullArg: '--tslint',
-  shortArg: '-i',
-  envVar: 'ionic_tslint',
-  packageConfig: 'IONIC_TSLINT',
-  defaultConfigFile: '../tslint'
-};
-
-export interface LintWorkerConfig {
-  configFile: string;
-  filePaths: string[];
 }

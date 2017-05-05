@@ -35,7 +35,7 @@ export function lintFile(context: BuildContext, configFile: string | null, fileP
 
 /**
  * Process typescript diagnostics after type checking
- * NOTE: This will throw a BuildError if there were any warnings or errors in any of the lint results.
+ * NOTE: This will throw a BuildError if there were any type errors.
  * @param {BuildContext} context
  * @param {Array<Diagnostic>} tsDiagnostics
  */

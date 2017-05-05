@@ -14,22 +14,24 @@ import { runTsLintDiagnostics } from '../logger/logger-tslint';
 /**
  * Lint files
  * @param {BuildContext} context
- * @param {string|null} configFile - TSLint config file path
+ * @param {string} tsConfig - Path to TS config file
+ * @param {string|null} tsLintConfig - TSLint config file path
  * @param {Array<string>} filePaths
  * @param {LinterOptions} linterOptions
  */
-export function lintFiles(context: BuildContext, configFile: string | null, filePaths: string[], linterOptions?: LinterOptions): Promise<void> {
-  return typeCheck(context, linterOptions)
+export function lintFiles(context: BuildContext, tsConfig: string, tsLintConfig: string | null, filePaths: string[], linterOptions?: LinterOptions): Promise<void> {
+  return typeCheck(context, tsConfig, linterOptions)
     .then(diagnostics => processTypeCheckDiagnostics(context, diagnostics))
-    .then(() => Promise.all(filePaths.map(filePath => lintFile(context, configFile, filePath, linterOptions)))
+    .then(() => Promise.all(filePaths.map(filePath => lintFile(context, tsConfig, tsLintConfig, filePath, linterOptions)))
     .then((lintResults: LintResult[]) => processLintResults(context, lintResults)));
 }
-export function lintFile(context: BuildContext, configFile: string | null, filePath: string, linterOptions?: LinterOptions): Promise<LintResult> {
+
+export function lintFile(context: BuildContext, tsConfig: string, tsLintConfig: string | null, filePath: string, linterOptions?: LinterOptions): Promise<LintResult> {
   if (isMpegFile(filePath)) {
     return Promise.reject(`${filePath} is not a valid TypeScript file`);
   }
   return readFileAsync(filePath)
-    .then((fileContents: string) => lint(context, configFile, filePath, fileContents, linterOptions));
+    .then((fileContents: string) => lint(context, tsConfig, tsLintConfig, filePath, fileContents, linterOptions));
 }
 
 

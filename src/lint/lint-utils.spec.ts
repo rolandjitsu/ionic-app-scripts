@@ -13,6 +13,7 @@ describe('lint utils', () => {
   describe('lintFile()', () => {
     it('should return lint details', () => {
       const filePath = 'test.ts';
+      const tsConfigPath = '';
       const fileContent = `
         export const foo = 'bar';
       `;
@@ -37,11 +38,11 @@ describe('lint utils', () => {
       spyOn(fs, 'readSync').and.returnValue(null);
       spyOn(fs, 'closeSync').and.returnValue(null);
 
-      return utils.lintFile(context, null, filePath, linterOptions)
+      return utils.lintFile(context, tsConfigPath, null, filePath, linterOptions)
         .then((result: LintResult) => {
           expect(result).toEqual(mockLintResult);
           expect(linter.lint)
-            .toHaveBeenCalledWith(context, null, filePath, fileContent, linterOptions);
+            .toHaveBeenCalledWith(context, tsConfigPath, null, filePath, fileContent, linterOptions);
         });
     });
   });

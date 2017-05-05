@@ -43,7 +43,8 @@ export function processTypeCheckDiagnostics(context: BuildContext, tsDiagnostics
   if (tsDiagnostics.length > 0) {
     const diagnostics = runTypeScriptDiagnostics(context, tsDiagnostics);
     printDiagnostics(context, DiagnosticsType.TypeScript, diagnostics, true, false);
-    const errorMessage = generateErrorMessageForFiles(diagnostics.map(diagnostic => diagnostic.relFileName), 'The following files failed type checking:');
+    const files = removeDuplicateFileNames(diagnostics.map(diagnostic => diagnostic.relFileName));
+    const errorMessage = generateErrorMessageForFiles(files, 'The following files failed type checking:');
     throw new BuildError(errorMessage);
   }
 }
@@ -63,18 +64,13 @@ export function processLintResults(context: BuildContext, results: LintResult[])
     if (result.errorCount !== 0 || result.warningCount !== 0) {
       const diagnostics = runTsLintDiagnostics(context, result.failures);
       printDiagnostics(context, DiagnosticsType.TsLint, diagnostics, true, false);
-
-      // Only add new file entries if not already there
-      for (const fileName of getFileNames(context, result.failures)) {
-        if (filesThatDidNotPass.indexOf(fileName) === -1) {
-          filesThatDidNotPass.push(fileName);
-        }
-      }
+      filesThatDidNotPass.push(...getFileNames(context, result.failures));
     }
   }
 
-  if (filesThatDidNotPass.length > 0) {
-    const errorMessage = generateErrorMessageForFiles(filesThatDidNotPass);
+  const files = removeDuplicateFileNames(filesThatDidNotPass);
+  if (files.length > 0) {
+    const errorMessage = generateErrorMessageForFiles(files);
     throw new BuildError(errorMessage);
   }
 }
@@ -88,6 +84,17 @@ function getFileNames(context: BuildContext, failures: RuleFailure[]): string[] 
   return failures.map(failure => failure.getFileName()
     .replace(context.rootDir, '')
     .replace(/^\//g, ''));
+}
+
+// TODO: We can just use new Set() to filter duplicate entries
+function removeDuplicateFileNames(fileNames: string[]) {
+  const result = [];
+  for (const fileName of fileNames) {
+    if (result.indexOf(fileName) === -1) {
+      result.push(fileName);
+    }
+  }
+  return result;
 }
 
 function isMpegFile(file: string) {

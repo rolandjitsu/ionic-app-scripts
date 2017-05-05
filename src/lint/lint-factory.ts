@@ -1,5 +1,5 @@
 import { Configuration, Linter, LintResult } from 'tslint';
-import { Program } from 'typescript';
+import { Program, getPreEmitDiagnostics, Diagnostic } from 'typescript';
 import { BuildContext } from '../util/interfaces';
 import { getTsConfigPath } from '../transpile';
 import { isObject } from 'util';
@@ -24,6 +24,11 @@ export function lint(context: BuildContext, configFile: string, filePath: string
   const configuration = Configuration.findConfiguration(configFile, filePath);
   linter.lint(filePath, fileContents, Object.assign(configuration.results, isObject(linterOptions) ? {linterOptions} : {}));
   return linter.getResult();
+}
+
+
+export function typeCheck(program: Program, filePath: string): Diagnostic[] {
+  return getPreEmitDiagnostics(program, program.getSourceFile(filePath));
 }
 
 

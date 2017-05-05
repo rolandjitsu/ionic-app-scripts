@@ -78,20 +78,18 @@ export function processLintResults(context: BuildContext, results: LintResult[])
 }
 
 
-// TODO: Test this
-function generateErrorMessageForFiles(failingFiles: string[], message?: string) {
-  return `${message || 'The following files did not pass tslint:'} \n${failingFiles.join('\n')}`;
+export function generateErrorMessageForFiles(failingFiles: string[], message?: string) {
+  return `${message || 'The following files did not pass tslint:'}\n${failingFiles.join('\n')}`;
 }
 
-// TODO: Test this
-function getFileNames(context: BuildContext, failures: RuleFailure[]): string[] {
+export function getFileNames(context: BuildContext, failures: RuleFailure[]): string[] {
   return failures.map(failure => failure.getFileName()
     .replace(context.rootDir, '')
     .replace(/^\//g, ''));
 }
 
 // TODO: We can just use new Set() to filter duplicate entries
-function removeDuplicateFileNames(fileNames: string[]) {
+export function removeDuplicateFileNames(fileNames: string[]) {
   const result = [];
   for (const fileName of fileNames) {
     if (result.indexOf(fileName) === -1) {

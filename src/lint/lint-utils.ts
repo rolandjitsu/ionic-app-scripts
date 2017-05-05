@@ -1,11 +1,13 @@
 import * as fs from 'fs';
 import { LintResult, RuleFailure } from 'tslint';
+import { Diagnostic } from 'typescript';
 import { BuildError } from '../util/errors';
-import { lint, LinterOptions } from './lint-factory';
+import { lint, LinterOptions, typeCheck } from './lint-factory';
 import { readFileAsync } from '../util/helpers';
 import { BuildContext } from '../util/interfaces';
 import { Logger } from '../logger/logger';
 import { printDiagnostics, DiagnosticsType } from '../logger/logger-diagnostics';
+import { runTypeScriptDiagnostics } from '../logger/logger-typescript';
 import { runTsLintDiagnostics } from '../logger/logger-tslint';
 
 
@@ -17,8 +19,10 @@ import { runTsLintDiagnostics } from '../logger/logger-tslint';
  * @param {LinterOptions} linterOptions
  */
 export function lintFiles(context: BuildContext, configFile: string | null, filePaths: string[], linterOptions?: LinterOptions): Promise<void> {
-  return Promise.all(filePaths.map(filePath => lintFile(context, configFile, filePath, linterOptions)))
-    .then((lintResults: LintResult[]) => processLintResults(context, lintResults));
+  return typeCheck(context, linterOptions)
+    .then(diagnostics => processTypeCheckDiagnostics(context, diagnostics))
+    .then(() => Promise.all(filePaths.map(filePath => lintFile(context, configFile, filePath, linterOptions)))
+    .then((lintResults: LintResult[]) => processLintResults(context, lintResults)));
 }
 export function lintFile(context: BuildContext, configFile: string | null, filePath: string, linterOptions?: LinterOptions): Promise<LintResult> {
   if (isMpegFile(filePath)) {
@@ -26,6 +30,22 @@ export function lintFile(context: BuildContext, configFile: string | null, fileP
   }
   return readFileAsync(filePath)
     .then((fileContents: string) => lint(context, configFile, filePath, fileContents, linterOptions));
+}
+
+
+/**
+ * Process typescript diagnostics after type checking
+ * NOTE: This will throw a BuildError if there were any warnings or errors in any of the lint results.
+ * @param {BuildContext} context
+ * @param {Array<Diagnostic>} tsDiagnostics
+ */
+export function processTypeCheckDiagnostics(context: BuildContext, tsDiagnostics: Diagnostic[]) {
+  if (tsDiagnostics.length > 0) {
+    const diagnostics = runTypeScriptDiagnostics(context, tsDiagnostics);
+    printDiagnostics(context, DiagnosticsType.TypeScript, diagnostics, true, false);
+    const errorMessage = generateFormattedErrorMsg(diagnostics.map(diagnostic => diagnostic.relFileName), 'The following files failed type checking:');
+    throw new BuildError(errorMessage);
+  }
 }
 
 
@@ -54,14 +74,14 @@ export function processLintResults(context: BuildContext, results: LintResult[])
   }
 
   if (filesThatDidNotPass.length > 0) {
-    const errorMsg = generateFormattedErrorMsg(filesThatDidNotPass);
-    throw new BuildError(errorMsg);
+    const errorMessage = generateFormattedErrorMsg(filesThatDidNotPass);
+    throw new BuildError(errorMessage);
   }
 }
 
 
-function generateFormattedErrorMsg(failingFiles: string[]) {
-  return `The following files did not pass tslint: \n${failingFiles.join('\n')}`;
+function generateFormattedErrorMsg(failingFiles: string[], message?: string) {
+  return `${message || 'The following files did not pass tslint:'} \n${failingFiles.join('\n')}`;
 }
 
 function getFileNames(context: BuildContext, failures: RuleFailure[]): string[] {

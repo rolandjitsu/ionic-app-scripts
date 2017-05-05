@@ -1,8 +1,10 @@
 import * as fs from 'fs';
 import { LintResult } from 'tslint';
+import { DiagnosticCategory } from 'typescript';
 import * as helpers from '../util/helpers';
 import * as loggerDiagnostics from '../logger/logger-diagnostics';
-import * as logger from '../logger/logger-tslint';
+import * as tsLogger from '../logger/logger-typescript';
+import * as tsLintLogger from '../logger/logger-tslint';
 import * as linter from './lint-factory';
 import * as utils from './lint-utils';
 
@@ -44,6 +46,37 @@ describe('lint utils', () => {
     });
   });
 
+  describe('processTypeCheckDiagnostics()', () => {
+    it('should not throw an error when there are no files with errors or warnings', () => {
+      utils.processTypeCheckDiagnostics({}, []);
+    });
+
+    it('should throw an error when one or more file has failures', () => {
+      const knownError = new Error('Should never get here');
+      const results: any[] = [
+        {
+          file: {},
+          start: 0,
+          length: 10,
+          messageText: 'Something failed',
+          category: DiagnosticCategory.Warning,
+          code: 100
+        }
+      ];
+
+      spyOn(tsLogger, tsLogger.runTypeScriptDiagnostics.name).and.returnValue(null);
+      spyOn(loggerDiagnostics, loggerDiagnostics.printDiagnostics.name).and.returnValue(null);
+
+      try {
+        utils.processTypeCheckDiagnostics({}, results);
+        throw knownError;
+      } catch (e) {
+        expect(loggerDiagnostics.printDiagnostics).toHaveBeenCalledTimes(1);
+        expect(e).not.toEqual(knownError);
+      }
+    });
+  });
+
   describe('processLintResults()', () => {
     it('should not throw an error when there are no files with errors or warnings', () => {
       utils.processLintResults({}, [
@@ -77,8 +110,8 @@ describe('lint utils', () => {
         }
       ];
 
+      spyOn(tsLintLogger, tsLintLogger.runTsLintDiagnostics.name).and.returnValue(null);
       spyOn(loggerDiagnostics, loggerDiagnostics.printDiagnostics.name).and.returnValue(null);
-      spyOn(logger, logger.runTsLintDiagnostics.name).and.returnValue(null);
 
       try {
         utils.processLintResults({}, results);
@@ -86,7 +119,6 @@ describe('lint utils', () => {
       } catch (ex) {
         expect(loggerDiagnostics.printDiagnostics).toHaveBeenCalledTimes(1);
         expect(ex).not.toEqual(knownError);
-        console.log(ex);
       }
     });
   });

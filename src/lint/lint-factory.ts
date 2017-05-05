@@ -27,8 +27,18 @@ export function lint(context: BuildContext, configFile: string, filePath: string
 }
 
 
-export function typeCheck(program: Program, filePath: string): Diagnostic[] {
-  return getPreEmitDiagnostics(program, program.getSourceFile(filePath));
+/**
+ * Type check a TS program
+ * @param {BuildContext} context
+ * @param {LinterOptions} linterOptions
+ * @return {Promise<Diagnostic[]>}
+ */
+export function typeCheck(context: BuildContext, linterOptions?: LinterOptions): Promise<Diagnostic[]> {
+  if (isObject(linterOptions) && linterOptions.typeCheck) {
+    const program = createProgram(context);
+    return Promise.resolve(getPreEmitDiagnostics(program));
+  }
+  return Promise.resolve([]);
 }
 
 

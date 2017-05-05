@@ -1,7 +1,6 @@
-import * as lint from './lint';
-import * as workerClient from './worker-client';
 import * as Constants from './util/constants';
-
+import * as workerClient from './worker-client';
+import { lint } from './lint';
 
 let originalEnv = process.env;
 
@@ -18,18 +17,16 @@ describe('lint task', () => {
 
     it('should return a resolved promise', (done: Function) => {
       spyOn(workerClient, workerClient.runWorker.name).and.returnValue(Promise.resolve());
-      const promise = lint.lint(null);
 
-      promise.then(() => {
+      lint(null).then(() => {
         done();
       });
     });
 
     it('should return resolved promise when bailOnLintError is not set', (done: Function) => {
       spyOn(workerClient, workerClient.runWorker.name).and.returnValue(Promise.reject(new Error('Simulating an error')));
-      const promise = lint.lint(null);
 
-      promise.then(() => {
+      lint(null).then(() => {
         done();
       });
     });
@@ -38,9 +35,7 @@ describe('lint task', () => {
       spyOn(workerClient, workerClient.runWorker.name).and.returnValue(Promise.reject(new Error('Simulating an error')));
       process.env[Constants.ENV_BAIL_ON_LINT_ERROR] = 'true';
 
-      const promise = lint.lint(null);
-
-      promise.catch(() => {
+      lint(null).catch(() => {
         done();
       });
     });

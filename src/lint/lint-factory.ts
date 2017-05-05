@@ -34,7 +34,7 @@ export function lint(context: BuildContext, configFile: string, filePath: string
  */
 export function createProgram(context: BuildContext): Program {
   const tsconfig = getTsConfigPath(context);
-  return Linter.createProgram(tsconfig, context.srcDir);
+  return Linter.createProgram(tsconfig, context.rootDir);
 }
 
 

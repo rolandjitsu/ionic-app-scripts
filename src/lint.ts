@@ -29,9 +29,9 @@ const taskInfo: TaskInfo = {
 };
 
 
-export function lint(context: BuildContext, configFile?: string) {
+export function lint(context: BuildContext, tsLintConfig?: string, typeCheck?: boolean) {
   const logger = new Logger('lint');
-  return runWorker('lint', 'lintWorker', context, {configFile, tsConfig: getTsConfigPath(context), typeCheck: getBooleanPropertyValue(ENV_TYPE_CHECK_ON_LINT)})
+  return runWorker('lint', 'lintWorker', context, {tsLintConfig, tsConfig: getTsConfigPath(context), typeCheck: typeCheck || getBooleanPropertyValue(ENV_TYPE_CHECK_ON_LINT)})
     .then(() => {
       logger.finish();
     })
@@ -53,13 +53,13 @@ export function lintWorker(context: BuildContext, {tsConfig, tsLintConfig, typeC
 }
 
 
-export function lintUpdate(changedFiles: ChangedFile[], context: BuildContext) {
+export function lintUpdate(changedFiles: ChangedFile[], context: BuildContext, typeCheck?: boolean) {
   const changedTypescriptFiles = changedFiles.filter(changedFile => changedFile.ext === '.ts');
   return runWorker('lint', 'lintUpdateWorker', context, {
+    typeCheck,
     tsConfig: getTsConfigPath(context),
     tsLintConfig: getUserConfigFile(context, taskInfo, null),
-    filePaths: changedTypescriptFiles.map(changedTypescriptFile => changedTypescriptFile.filePath),
-    typeCheck: getBooleanPropertyValue(ENV_TYPE_CHECK_ON_LINT)
+    filePaths: changedTypescriptFiles.map(changedTypescriptFile => changedTypescriptFile.filePath)
   });
 }
 

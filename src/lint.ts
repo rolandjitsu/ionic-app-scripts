@@ -29,7 +29,7 @@ const taskInfo: TaskInfo = {
 };
 
 
-export function lint(context: BuildContext, tsLintConfig?: string, typeCheck?: boolean) {
+export function lint(context: BuildContext, tsLintConfig?: string | null, typeCheck?: boolean) {
   const logger = new Logger('lint');
   return runWorker('lint', 'lintWorker', context, {tsLintConfig, tsConfig: getTsConfigPath(context), typeCheck: typeCheck || getBooleanPropertyValue(ENV_TYPE_CHECK_ON_LINT)})
     .then(() => {
@@ -77,16 +77,16 @@ function lintApp(context: BuildContext, {tsConfig, tsLintConfig, typeCheck}: Lin
 }
 
 
-function getLintConfig(context: BuildContext, configFile: string): Promise<string> {
+function getLintConfig(context: BuildContext, tsLintConfig: string | null): Promise<string> {
   return new Promise((resolve, reject) => {
-    configFile = getUserConfigFile(context, taskInfo, configFile);
-    if (!configFile) {
-      configFile = join(context.rootDir, 'tslint.json');
+    tsLintConfig = getUserConfigFile(context, taskInfo, tsLintConfig);
+    if (!tsLintConfig) {
+      tsLintConfig = join(context.rootDir, 'tslint.json');
     }
 
-    Logger.debug(`tslint config: ${configFile}`);
+    Logger.debug(`tslint config: ${tsLintConfig}`);
 
-    access(configFile, (err: Error) => {
+    access(tsLintConfig, (err: Error) => {
       if (err) {
         // if the tslint.json file cannot be found that's fine, the
         // dev may not want to run tslint at all and to do that they
@@ -94,7 +94,7 @@ function getLintConfig(context: BuildContext, configFile: string): Promise<strin
         reject(err);
         return;
       }
-      resolve(configFile);
+      resolve(tsLintConfig);
     });
   });
 }

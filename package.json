@@ -54,7 +54,7 @@
     "rollup-plugin-node-resolve": "2.0.0",
     "rollup-pluginutils": "2.0.1",
     "tiny-lr": "1.0.3",
-    "tslint": "5.1.0",
+    "tslint": "^5.2.0",
     "tslint-eslint-rules": "4.0.0",
     "uglify-js": "2.8.22",
     "webpack": "2.2.1",

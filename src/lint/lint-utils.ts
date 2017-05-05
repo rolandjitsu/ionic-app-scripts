@@ -43,7 +43,7 @@ export function processTypeCheckDiagnostics(context: BuildContext, tsDiagnostics
   if (tsDiagnostics.length > 0) {
     const diagnostics = runTypeScriptDiagnostics(context, tsDiagnostics);
     printDiagnostics(context, DiagnosticsType.TypeScript, diagnostics, true, false);
-    const errorMessage = generateFormattedErrorMsg(diagnostics.map(diagnostic => diagnostic.relFileName), 'The following files failed type checking:');
+    const errorMessage = generateErrorMessageForFiles(diagnostics.map(diagnostic => diagnostic.relFileName), 'The following files failed type checking:');
     throw new BuildError(errorMessage);
   }
 }
@@ -74,13 +74,13 @@ export function processLintResults(context: BuildContext, results: LintResult[])
   }
 
   if (filesThatDidNotPass.length > 0) {
-    const errorMessage = generateFormattedErrorMsg(filesThatDidNotPass);
+    const errorMessage = generateErrorMessageForFiles(filesThatDidNotPass);
     throw new BuildError(errorMessage);
   }
 }
 
 
-function generateFormattedErrorMsg(failingFiles: string[], message?: string) {
+function generateErrorMessageForFiles(failingFiles: string[], message?: string) {
   return `${message || 'The following files did not pass tslint:'} \n${failingFiles.join('\n')}`;
 }
 

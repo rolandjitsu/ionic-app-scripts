@@ -7,7 +7,7 @@ describe('copy task', () => {
     it('should convert to watch config format', () => {
       // arrange
       const context = { };
-      const configFile = 'tsLintConfig';
+      const configFile = 'configFile';
       const sampleConfig: copy.CopyConfig = {
         copyAssets: {
           src: ['{{SRC}}/assets/**/*'],

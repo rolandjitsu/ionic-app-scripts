@@ -1,9 +1,8 @@
 import * as fs from 'fs';
 import { Linter, LintResult, RuleFailure } from 'tslint';
 import { Diagnostic, Program } from 'typescript';
-import { isObject } from 'util';
 import { BuildError } from '../util/errors';
-import { createProgram, createLinter, getTsLintConfig, lint, LinterOptions, typeCheck } from './lint-factory';
+import { createLinter, getTsLintConfig, lint, LinterOptions, typeCheck } from './lint-factory';
 import { readFileAsync } from '../util/helpers';
 import { BuildContext } from '../util/interfaces';
 import { Logger } from '../logger/logger';

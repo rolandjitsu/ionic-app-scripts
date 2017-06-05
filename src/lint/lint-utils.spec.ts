@@ -13,15 +13,11 @@ describe('lint utils', () => {
   describe('lintFile()', () => {
     it('should return lint details', () => {
       const filePath = 'test.ts';
-      const tsConfigPath = '';
       const fileContent = `
         export const foo = 'bar';
       `;
       const context: any = {
         rootDir: ''
-      };
-      const linterOptions = {
-        typeCheck: true
       };
       const mockLintResult: any = {
         errorCount: 0,

@@ -1,5 +1,4 @@
 import * as fs from 'fs';
-import { LintResult } from 'tslint';
 import { DiagnosticCategory } from 'typescript';
 import * as helpers from '../util/helpers';
 import * as loggerDiagnostics from '../logger/logger-diagnostics';

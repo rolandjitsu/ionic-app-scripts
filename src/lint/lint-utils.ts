@@ -2,7 +2,14 @@ import * as fs from 'fs';
 import { Linter, LintResult, RuleFailure } from 'tslint';
 import { Diagnostic, Program } from 'typescript';
 import { BuildError } from '../util/errors';
-import { createLinter, getLintResult, getTsLintConfig, lint, LinterOptions, typeCheck } from './lint-factory';
+import {
+  createLinter,
+  getLintResult,
+  getTsLintConfig,
+  lint,
+  LinterOptions,
+  typeCheck
+} from './lint-factory';
 import { readFileAsync } from '../util/helpers';
 import { BuildContext } from '../util/interfaces';
 import { Logger } from '../logger/logger';

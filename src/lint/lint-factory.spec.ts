@@ -1,6 +1,5 @@
-import * as fs from 'fs';
-import { Configuration, Linter, LintResult } from 'tslint';
-import { DiagnosticCategory, getPreEmitDiagnostics, Program } from 'typescript';
+import { Configuration, Linter } from 'tslint';
+import { DiagnosticCategory } from 'typescript';
 import * as ts from 'typescript';
 import { isObject } from 'util';
 import {

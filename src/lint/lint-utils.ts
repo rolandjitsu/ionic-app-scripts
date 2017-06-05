@@ -98,15 +98,8 @@ export function getFileNames(context: BuildContext, failures: RuleFailure[]): st
     .replace(/^\//g, ''));
 }
 
-// TODO: We can just use new Set() to filter duplicate entries
 export function removeDuplicateFileNames(fileNames: string[]) {
-  const result = [];
-  for (const fileName of fileNames) {
-    if (result.indexOf(fileName) === -1) {
-      result.push(fileName);
-    }
-  }
-  return result;
+  return Array.from(new Set(fileNames));
 }
 
 function isMpegFile(file: string) {

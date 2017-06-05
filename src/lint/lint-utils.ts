@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import { Linter, LintResult, RuleFailure } from 'tslint';
 import { Diagnostic, Program } from 'typescript';
 import { BuildError } from '../util/errors';
-import { createLinter, getTsLintConfig, lint, LinterOptions, typeCheck } from './lint-factory';
+import { createLinter, getLintResult, getTsLintConfig, lint, LinterOptions, typeCheck } from './lint-factory';
 import { readFileAsync } from '../util/helpers';
 import { BuildContext } from '../util/interfaces';
 import { Logger } from '../logger/logger';
@@ -26,12 +26,13 @@ export function lintFiles(context: BuildContext, program: Program, tsLintConfig:
   return typeCheck(context, program, linterOptions)
     .then(diagnostics => processTypeCheckDiagnostics(context, diagnostics))
     .then(() => Promise.all(filePaths.map(filePath => lintFile(linter, config, filePath)))
-    .then(results => results.pop())
-    // NOTE: We only need to process the last lint result, otherwise we'll end up with duplicated messages
-    .then((result: LintResult) => processLintResults(context, result)));
+    .then(() => getLintResult(linter))
+    // NOTE: We only need to process the lint result after we ran the linter on all the files,
+    // otherwise we'll end up with duplicated messages if we process the result after each file gets linted.
+    .then((result: LintResult) => processLintResult(context, result)));
 }
 
-export function lintFile(linter: Linter, config: any, filePath: string): Promise<LintResult> {
+export function lintFile(linter: Linter, config: any, filePath: string): Promise<void> {
   if (isMpegFile(filePath)) {
     return Promise.reject(`${filePath} is not a valid TypeScript file`);
   }
@@ -63,7 +64,7 @@ export function processTypeCheckDiagnostics(context: BuildContext, tsDiagnostics
  * @param {BuildContext} context
  * @param {LintResult} result
  */
-export function processLintResults(context: BuildContext, result: LintResult) {
+export function processLintResult(context: BuildContext, result: LintResult) {
   const files: string[] = [];
 
   // Only process the lint result if there are errors or warnings (there's no point otherwise)

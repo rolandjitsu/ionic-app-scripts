@@ -43,8 +43,7 @@ describe('lint utils', () => {
       const mockConfig = {};
 
       return utils.lintFile(mockLinter, mockConfig, filePath)
-        .then((result: LintResult) => {
-          expect(result).toEqual(mockLintResult);
+        .then(() => {
           expect(linter.lint)
             .toHaveBeenCalledWith(mockLinter, mockConfig, filePath, fileContent);
         });
@@ -82,9 +81,9 @@ describe('lint utils', () => {
     });
   });
 
-  describe('processLintResults()', () => {
+  describe('processLintResult()', () => {
     it('should not throw an error when there are no files with errors or warnings', () => {
-      utils.processLintResults({}, {
+      utils.processLintResult({}, {
           errorCount: 0,
           warningCount: 0,
           failures: [],
@@ -115,7 +114,7 @@ describe('lint utils', () => {
       spyOn(loggerDiagnostics, loggerDiagnostics.printDiagnostics.name).and.returnValue(null);
 
       try {
-        utils.processLintResults({}, result);
+        utils.processLintResult({}, result);
         throw knownError;
       } catch (ex) {
         expect(loggerDiagnostics.printDiagnostics).toHaveBeenCalledTimes(1);

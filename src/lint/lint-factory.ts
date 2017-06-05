@@ -15,14 +15,21 @@ export interface LinterConfig {
 
 /**
  * Lint a file according to config
- * @param {Linter} tsLintConfig
+ * @param {Linter} linter
  * @param {LinterConfig} config
  * @param {string} filePath
  * @param {string} fileContents
+ */
+export function lint(linter: Linter, config: LinterConfig, filePath: string, fileContents: string): void {
+  linter.lint(filePath, fileContents, config as any);
+}
+
+/**
+ * Get the linter result
+ * @param {Linter} linter
  * @return {LintResult}
  */
-export function lint(linter: Linter, config: LinterConfig, filePath: string, fileContents: string): LintResult {
-  linter.lint(filePath, fileContents, config as any);
+export function getLintResult(linter: Linter): LintResult {
   return linter.getResult();
 }
 
@@ -30,7 +37,7 @@ export function lint(linter: Linter, config: LinterConfig, filePath: string, fil
 /**
  * Type check a TS program
  * @param {BuildContext} context
- * @param {string} tsConfig
+ * @param {Program} program
  * @param {LinterOptions} linterOptions
  * @return {Promise<Diagnostic[]>}
  */
@@ -66,8 +73,7 @@ export function getFileNames(context: BuildContext, program: Program): string[] 
 
 /**
  * Get lint configuration
- * @param {BuildContext} context
- * @param {Program} program
+ * @param {string} tsLintConfig
  * @param {LinterOptions} linterOptions
  * @return {Linter}
  */

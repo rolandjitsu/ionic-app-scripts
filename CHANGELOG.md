@@ -1,3 +1,43 @@
+<a name="1.3.12"></a>
+## [1.3.12](https://github.com/ionic-team/ionic-app-scripts/compare/v1.3.11...v1.3.12) (2017-06-29)
+
+## Bug Fixes
+
+* **dependencies:** Added `reflect-metadata` to the list of dependencies ([e6f8481](https://github.com/ionic-team/ionic-app-scripts/commit/e6f8481)
+
+
+<a name="1.3.11"></a>
+## [1.3.11](https://github.com/ionic-team/ionic-app-scripts/compare/v1.3.10...v1.3.11) (2017-06-28)
+
+## Bug Fixes
+
+* **dependencies:** Removed `peerDependencies`. ([90cd59d](https://github.com/ionic-team/ionic-app-scripts/commit/90cd59d))
+
+
+<a name="1.3.10"></a>
+## [1.3.10](https://github.com/ionic-team/ionic-app-scripts/compare/v1.3.9...v1.3.10) (2017-06-28)
+
+## Notes
+
+Ionic updated to npm 5 across the board, so please update to npm 5 to utilize our lock file when contributing.
+
+### Bug Fixes
+
+* **bonjour:** remove bonjour as its causing trouble for users on Windows without git ([e4b5c59](https://github.com/ionic-team/ionic-app-scripts/commit/e4b5c59))
+
+
+
+<a name="1.3.9"></a>
+## [1.3.9](https://github.com/ionic-team/ionic-app-scripts/compare/v1.3.8...v1.3.9) (2017-06-28)
+
+
+### Features
+
+* **lab:** first iteration of the new Ionic Lab design
+* **scripts:** push npm build to arbitrary tag ([#1060](https://github.com/ionic-team/ionic-app-scripts/issues/1060)) ([4e93f60](https://github.com/ionic-team/ionic-app-scripts/commit/4e93f60))
+
+
+
 <a name="1.3.8"></a>
 ## [1.3.8](https://github.com/ionic-team/ionic-app-scripts/compare/v1.3.7...v1.3.8) (2017-06-21)
 
